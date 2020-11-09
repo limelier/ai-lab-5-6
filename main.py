@@ -1,4 +1,4 @@
-import time
+from math import inf
 from copy import deepcopy
 from enum import Enum
 
@@ -109,17 +109,49 @@ class State:
             print('Move is invalid (out of bounds / over another piece?)')
         return state
 
+    def do_ai_move(self):
+        best = None
+        alpha = -inf
+        beta = inf
+
+        for state in self.generate_all():
+            value = state.search(alpha, beta, 3, maximize=False)
+            if value > alpha:
+                alpha = value
+                best = state
+        return best
+
+    def search(self, alpha, beta, depth, maximize: bool):
+        if depth == 0 or self.is_final():
+            return self.evaluate()
+
+        if maximize:
+            for state in self.generate_all():
+                value = state.search(alpha, beta, depth - 1, not maximize)
+                alpha = max(alpha, value)
+                if alpha >= beta:
+                    break
+            return alpha
+        else:
+            for state in self.generate_all():
+                value = state.search(alpha, beta, depth - 1, not maximize)
+                beta = min(beta, value)
+                if alpha >= beta:
+                    break
+            return beta
+
 
 def test():
     state = State()
-    new_state = state.do_player_move()
-    if new_state is not None:
-        new_state.print()
-        possible_states = new_state.generate_all()
-        time.sleep(2)
-        print('There are {} possible moves for player {}, picking one...'.format(len(possible_states), new_state.next))
-        time.sleep(1)
-        possible_states.pop().print()
+    while not state.is_final():
+        if state.next == 1:
+            state = state.do_ai_move()
+        else:
+            next_state = state.do_player_move()
+            while next_state is None:
+                next_state = state.do_player_move()
+            state = next_state
+    state.print()
 
 
 if __name__ == '__main__':
