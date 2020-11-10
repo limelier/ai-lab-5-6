@@ -38,6 +38,8 @@ class State:
             return 2
         elif self.board[3] == [1, 1, 1, 1]:
             return 1
+        elif not self.generate_all():
+            return 3 - self.next
         else:
             return 0
 
@@ -48,6 +50,22 @@ class State:
 
         If the number is positive, the position favors player 1. If it's negative, it favors player 2.
         """
+        point_sum = 0
+        for row_idx, row in enumerate(self.board):
+            for item in row:
+                if item == 1:
+                    point_sum += row_idx
+                elif item == 2:
+                    point_sum -= (3 - row_idx)
+        return point_sum
+
+    def evaluate2(self):
+        winner = self.is_final()
+        if winner == 1:
+            return +inf
+        elif winner == 2:
+            return -inf
+
         point_sum = 0
         for row_idx, row in enumerate(self.board):
             for item in row:
@@ -123,7 +141,7 @@ class State:
 
     def search(self, alpha, beta, depth, maximize: bool):
         if depth == 0 or self.is_final():
-            return self.evaluate()
+            return self.evaluate2()
 
         if maximize:
             for state in self.generate_all():
@@ -151,7 +169,7 @@ def test():
             while next_state is None:
                 next_state = state.do_player_move()
             state = next_state
-    state.print()
+    print('Player {} wins!'.format(state.is_final()))
 
 
 if __name__ == '__main__':
